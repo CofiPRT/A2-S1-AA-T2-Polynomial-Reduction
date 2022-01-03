@@ -1,0 +1,210 @@
+----------------------------------------
+--------- Analiza Algoritmilor ---------
+----- Tema 2. Reduceri polinomiale -----
+----------------------------------------
+
+Cuprinsul:
+	1. Pachetul 'atoms'.................................Linia  20
+		1.1. Clasa 'Atom'...............................Linia  21
+		1.2. Enum-ul 'AtomType'.........................Linia  29
+	2. Pachetul 'reduction'.............................Linia  33
+		2.1. Clasa 'Graph'..............................Linia  34
+		2.2. Clasa 'GraphOperator'......................Linia  41
+		2.3. Clasa 'MainClass'..........................Linia 100
+	3. Demonstratie de reducere polinomiala.............Linia 144
+	4. Alte precizari...................................Linia 205
+	
+=== atoms ===
+------ Atom
+		- Un astfel de obiect reprezinta un atom(o variabila) ce poate fi de
+		doua tipuri: muchie, caz in care argumentele reprezinta capetele ei, sau
+		distanta, caz in care primul argument reprezinta distanta de la nodul
+		intai la nodul din al doilea argument.
+		- Utilizez un astfel de obiect pentru a fi clar in cod cand se lucreaza
+		cu un atom, pentru a i se intelege argumentele si tipul.
+		
+------ AtomType
+		- Un simplu enum ce defineste doua tipuri de atomi: muchie (EDGE) si
+		distanta (DISTANCE)
+
+=== reduction ===
+------ Graph
+		- Un simplu graf neorientat ce retine numarul de noduri si o matrice de
+		adiacenta
+		- Sunt prezente metode uzuale pentru un graf:
+			- 'addEdge' adauga o muchie intre cele 2 noduri primite ca parametru
+			- 'hasEdge' testeaza daca exista o muchie intre 2 noduri
+			
+------ GraphOperator
+		- Aceasta clasa incapsuleaza un graf si prezinta o multitudine de
+		metode ce servesc la rezolvarea cerintei.
+		- Sunt prezente, in primul rand, metode ce servesc la manipularea
+		String-urilor cu ajutorul functiilor boolene.
+			- 'AND' si 'OR' ce pot primi ori 2 parametri ori o lista cu mai
+			multi parametri, intre care se va aplica (sub forma de String)
+			functia aplicata
+			- 'NOT' ce primeste un singur string caruia ii adauga simbolul de
+			negatie "~"
+			- 'XNOR' ce se foloseste de toate cele 3 pentru a realiza operatia
+			XNOR asupra a doua string-uri.
+			- 'noParanthesis' este o metoda ce "taie" (daca este cazul) perechea
+			cea mai exterioara de paranteze dintr-un string (foloseste doar
+			la afisare)
+				- tin sa precizez ca la un anumit numar de paranteze
+				"inofensive" (de exemplu, "((expresie))") programul 'main' (ce
+				banuiesc ca verifica echivalenta a doua expresii) ori intra
+				in loop infinit ori dureaza execrabil de mult (halting problem)
+				incepand de la testul 4 inclusiv (primele 3 teste nu prezinta
+				acest defect)
+				
+		- Metode principale pentru rezolvarea cerintei:
+			- 'pathsAndDistances' se ocupa cu clauza ce reprezinta caile unui
+			drum printr-un nod. De exemplu, dintre toate muchiile unui nod,
+			printr-una trebuie sa se ajunga in el si prin alta trebuie sa se
+			paraseasca nodul, restul muchiilor fiind astfel neatinse.
+				Metoda, astfel, itereaza prin fiecare nod si ii gaseste fiecare
+				muchie. La acest pas, se genereaza posibilitatile de alegere
+				a cate 2 muchii (combinari de N - noduri - luate cate 2).
+				Totodata, pentru fiecare nod, se genereaza toate distantele
+				posibile de la primul nod la acesta (anume, cum este precizat
+				si in enunt, distante in intervalul [1, N/2+1]
+				
+			- 'twoByTwo' primeste o lista de muchii si genereaza, in maniera
+			prezentata mai sus, un numar de (combinari de N luate cate 2)
+			clauze
+			
+			- 'possibleDistances' este o metoda simpla ce genereaza, in maniera
+			antepusa, distantele posibile ce pot fi parcurse catre un nod
+			
+			- 'twoWayPaths' se ocupa de generarea clauzelor ce reprezinta
+			directia printr-o muchie. Avand in vedere ca graful este neorientat,
+			o muchie poate fi traversata in ambele sensuri.
+			
+			- 'pathsFromFirstNode' genereaza alegerile posibile pornind din
+			primul nod, avand in vedere ca distanta spre oricare alt nod ce
+			poate fi "atins" instant este 1.
+			
+			- 'pathsToEveryNode' incearca fiecare distanta posibila pentru un
+			un nod si ii afla metodele de intrare in acesta (muchiile care intra
+			in el, tinand cont ca trebuie sa se realizeze o distanta anume de
+			la primul nod la acesta).
+			
+			- 'possibleNodeEntries' genereaza aceste posibilitati de intrare
+			intr-un nod in functie de o anumita distanta, presupunand totodata
+			(si generand clauzele aferente) faptul ca nu se ajunge in nod
+			intr-o distanta mai mica decat cea aleasa.
+		
+------ MainClass
+		- Clasa ce contine metoda 'main'
+		- Serveste mai multe functionalitati
+		IO:
+			Un Scanner pentru citirea din fisier 'inputStream'
+			
+			Redirectionarea output-ului se face in fisierul de output prin
+			System.setOut asupra stream-ului aferent fisierului.
+			Se face un backup al consolei (out-ul initial) in cazul in care se
+			doreste reutilizarea ei la sfarsitul programului.
+			
+		Obiecte principale:
+			Programul va lucra cu un graf orientat principal 'graph' si un
+			'graphOperator' ce va actiona asupra lui
+			
+		Metoda setupIO:
+			Face modificarile necesare pentru input si output pentru a se putea
+			lucra cu aceste stream-uri
+			
+		Metoda restoreIO:
+			Restaureaza modificarile facute de 'setupIO'
+			
+		Metoda registerGraph:
+			> Se citeste din fisier numarul de noduri din graf urmat de
+			muchiile pe care acesta le prezinta
+			> Se genereaza un astfel de graf
+			
+		Metoda convertToSAT:
+			> Aplica metodele generatoare de clauze din 'GraphOperator' asupra
+			grafului:
+				- pathsAndDistances
+				- twoWayPaths
+				- pathsFromFirstNode
+				- pathsToEveryNode
+			> Se aplica AND asupra clauzelor generate de metodele antepuse
+			> In cazul in care s-a descoperit devreme (pathsAndDistances) ca
+			nu poate exista un ciclu hamiltonian (s-a gasit un nod cu o singura
+			muchie) se ignora alte metode si programul se incheie cu afisarea
+			unei expresii ce este mereu falsa.
+			
+		Metoda main:
+			> Se stabilesc stream-urile de input si de output si se incepe
+			executia programului
+			
+=== Demonstratie de reducere polinomiala ===
+	Avand in vedere ca transformarea se produce in 'convertToSAT', analizam
+	fiecare instructiune repetitiva de la apelul ei.
+	
+	- pathsAndDistances:
+		for (1 -> N) => N
+			for (1 -> N) (fara un caz) => N - 1
+				twoByTwo:
+					pentru un numar N de noduri, orice nod poate avea maximum
+					N-1 muchii
+					
+					combinari de N-1 luate cate 2
+					
+			possibleDistances: (de N-1 ori)
+				for (1 -> N/2 + 1) => N/2 + 1
+		
+		TOTAL: N * (N-1) * (N-1)! / 2! / (N-3)!	+ (N-1) * (N/2 + 1) =
+			=  N * (N-1) * (N-2) * (N-1) / 2 + (N-1) * (N/2 + 1)
+			
+		APARTINE: O(N^4)
+			
+	- twoWayPaths:
+		for (1 -> N) => N
+			for (1 -> N) => N
+			
+		TOTAL: N*N = N^2
+		
+		APARTINE: O(N^2)
+		
+	- pathsFromFirstNode:
+		for (1 -> N) => N
+		
+		for (1 -> N) => N
+		
+		TOTAL: N + N = 2N
+		
+		APARTINE: O(N)
+		
+	- pathsToEveryNode:
+		for (2 -> N/2 + 1) => N/2
+			for (2 -> N) => N - 1
+				possibleNodeEntries:
+					for (2 -> N) => N - 1
+					
+					for (1 -> N/2 + 1 - 1) => N/2
+					
+		TOTAL: ((N-1) + N/2) * (N-1) * (N/2)
+		
+		APARTINE: O(N^3)
+		
+		*** PRECIZARE ***
+			Functiile AND si OR asupra unor ArrayList-uri au si ele un 'for'
+			in ele dar care functioneaza intotdeauna O(N). Aceasta complexitate
+			nu schimba rezultatul final, fiind mai "mica" decat restul
+			complexitatilor principale.
+			
+	TOTAL PROGRAM: O(N^4) + O(N^2) + O(N) + O(N^3)
+	
+	APARTINE: O(N^4), prin urmare transformarea este polinomiala
+	
+
+=== Alte precizari ===
+		- Deja precizat, incepand cu testul 4 exista cazuri in care programul
+		'main' folosit de checker dureaza prea mult. Nu am reusit sa gasesc
+		exact cauza, dar un indiciu poate fi ca un numar prea mare de paranteze
+		inofensive (exemplu "((expresie))") poate provoca acest lucru. O alta
+		presupunere este adaugarea parantezelor in maniera "(a & b) & c" sau
+		"a & (b & c)" in loc de "a & b & c". Confuzia vine de la faptul ca am
+		eliminat ambele "greseli" inainte sa testez din nou si nu stiu daca
+		una dintre ele, sau ambele in combinatie, reprezinta problema.

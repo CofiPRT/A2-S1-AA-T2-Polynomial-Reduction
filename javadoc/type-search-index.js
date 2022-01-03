@@ -1,0 +1,1 @@
+typeSearchIndex = [{"l":"All Classes","url":"allclasses-index.html"},{"p":"atoms","l":"Atom"},{"p":"atoms","l":"AtomType"},{"p":"reduction","l":"Graph"},{"p":"reduction","l":"GraphOperator"},{"p":"reduction","l":"MainClass"}]
